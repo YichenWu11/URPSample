@@ -19,21 +19,21 @@ public class GraphicsTest : MonoBehaviour
 
     void Start()
     {
-        for (int i = 0; i < m_Object2WorldMats.Length; ++i)
-        {
-            m_Object2WorldMats[i] =
-                Matrix4x4.Translate(new Vector3(i * 1.0f, i * 1.0f, i * 1.0f));
-        }
-
-        m_ArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
-        UpdateBuffer();
+        // for (int i = 0; i < m_Object2WorldMats.Length; ++i)
+        // {
+        //     m_Object2WorldMats[i] =
+        //         Matrix4x4.Translate(new Vector3(i * 1.0f, i * 1.0f, i * 1.0f));
+        // }
+        //
+        // m_ArgsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
+        // UpdateBuffer();
     }
 
     void Update()
     {
         // TestDrawMesh();
         // TestDrawMeshInstanced();
-        TestDrawMeshInstancedIndirect();
+        // TestDrawMeshInstancedIndirect();
     }
 
     void TestDrawMesh()
