@@ -1,0 +1,75 @@
+#pragma kernel ViewFrustumCulling
+#pragma multi_compile_local None_Cull Conservative_Cull Racial_Cull
+
+/*
+*   float3(boundMin));
+    float3(boundMax));
+    float3(boundMax.x, boundMax.y, boundMin.z));
+    float3(boundMax.x, boundMin.y, boundMax.z));
+    float3(boundMax.x, boundMin.y, boundMin.z));
+    float3(boundMin.x, boundMax.y, boundMax.z));
+    float3(boundMin.x, boundMax.y, boundMin.z));
+    float3(boundMin.x, boundMin.y, boundMax.z));
+ * 
+ */
+
+uint _InstanceCount;
+float4 _Planes[6];
+float4 _Bounds[2]; // boundMin and boundMax (float4 x 2)
+
+StructuredBuffer<float4> _Input;
+AppendStructuredBuffer<float4> _CullResult;
+
+float3 TransformToWorldSpace(float4 positionOS, float4 data)
+{
+    float3 positionWS = positionOS.xyz;
+    positionWS = positionWS * data.w;
+    positionWS = positionWS + data.xyz;
+    return positionWS;
+}
+
+bool IsOutsideThePlane(float4 plane, float3 pointPosition)
+{
+    if (dot(plane.xyz, pointPosition) + plane.w > 0)
+        return true;
+    return false;
+}
+
+[numthreads(64,1,1)]
+void ViewFrustumCulling(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x >= _InstanceCount)
+        return;
+
+    float4 data = _Input[id.x];
+
+    float3 boundMin = _Bounds[0].xyz;
+    float3 boundMax = _Bounds[1].xyz;
+    float3 boundVerts[8]; //AABB8个顶点坐标
+    boundVerts[0] = TransformToWorldSpace(float4(boundMin, 1), data);
+    boundVerts[1] = TransformToWorldSpace(float4(boundMax, 1), data);
+    boundVerts[2] = TransformToWorldSpace(float4(boundMax.x, boundMax.y, boundMin.z, 1), data);
+    boundVerts[3] = TransformToWorldSpace(float4(boundMax.x, boundMin.y, boundMax.z, 1), data);
+    boundVerts[6] = TransformToWorldSpace(float4(boundMax.x, boundMin.y, boundMin.z, 1), data);
+    boundVerts[4] = TransformToWorldSpace(float4(boundMin.x, boundMax.y, boundMax.z, 1), data);
+    boundVerts[5] = TransformToWorldSpace(float4(boundMin.x, boundMax.y, boundMin.z, 1), data);
+    boundVerts[7] = TransformToWorldSpace(float4(boundMin.x, boundMin.y, boundMax.z, 1), data);
+
+    #if Conservative_Cull
+    //如果8个顶点都在某个面外，则肯定在视锥体外面
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (!IsOutsideThePlane(_Planes[i], boundVerts[j].xyz))
+                break;
+            if (j == 7)
+                return;
+        }
+    }
+    #elif Racial_Cull
+
+    #endif
+
+    _CullResult.Append(data);
+}

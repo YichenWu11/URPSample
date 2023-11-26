@@ -9,6 +9,7 @@ public class ShowCameraFrustum : MonoBehaviour
 {
     public Camera cam;
     public bool isShow = true;
+    public bool isShowNormal = false;
 
     Vector3[] m_nearCorners = new Vector3[4];
     Vector3[] m_farCorners = new Vector3[4];
@@ -25,8 +26,9 @@ public class ShowCameraFrustum : MonoBehaviour
     {
         if (!isShow)
             return;
-        // CalculateCorners();
+        CalculateCorners();
         DrawFrustum(m_nearCorners, m_farCorners, Color.red);
+        DrawPlaneNormals();
     }
 
     private void CalculateCorners()
@@ -40,6 +42,20 @@ public class ShowCameraFrustum : MonoBehaviour
         {
             m_nearCorners[i] = cam.transform.TransformVector(m_nearCorners[i]) + cam.transform.position;
             m_farCorners[i] = cam.transform.TransformVector(m_farCorners[i]) + cam.transform.position;
+        }
+    }
+
+    private void DrawPlaneNormals()
+    {
+        if (!isShowNormal)
+            return;
+
+        var planes = FrustumHelper.GetFrustumPlane(cam);
+
+        for (int i = 0; i < planes.Length; ++i)
+        {
+            var normal = new Vector3(planes[i].x, planes[i].y, planes[i].z);
+            Debug.DrawLine(cam.transform.position, cam.transform.position + 10f * normal, Color.blue);
         }
     }
 
