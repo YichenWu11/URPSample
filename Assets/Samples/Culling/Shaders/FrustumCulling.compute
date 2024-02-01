@@ -28,10 +28,38 @@ float3 TransformToWorldSpace(float4 positionOS, float4 data)
     return positionWS;
 }
 
+float DistancePointToPlane(float4 plane, float4 pointPosition)
+{
+    return dot(plane, pointPosition) / dot(plane.xyz, plane.xyz);
+}
+
 bool IsOutsideThePlane(float4 plane, float3 pointPosition)
 {
-    if (dot(plane.xyz, pointPosition) + plane.w > 0)
-        return true;
+    return dot(plane.xyz, pointPosition) + plane.w > 0;
+}
+
+bool ConservativeCull(float3 boundVerts[8])
+{
+    for (int i = 0; i < 6; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (!IsOutsideThePlane(_Planes[i], boundVerts[j].xyz))
+                break;
+            if (j == 7)
+                return true;
+        }
+    }
+    return false;
+}
+
+bool RacialCull(float3 boundVerts[8])
+{
+    return false;
+}
+
+bool ShadowCull(float3 boundVerts[8])
+{
     return false;
 }
 
@@ -57,18 +85,11 @@ void ViewFrustumCulling(uint3 id : SV_DispatchThreadID)
 
     #if Conservative_Cull
     //如果8个顶点都在某个面外，则肯定在视锥体外面
-    for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 8; j++)
-        {
-            if (!IsOutsideThePlane(_Planes[i], boundVerts[j].xyz))
-                break;
-            if (j == 7)
-                return;
-        }
-    }
+    if (ConservativeCull(boundVerts))
+        return;
     #elif Racial_Cull
-
+    if (RacialCull(boundVerts))
+        return;
     #endif
 
     _CullResult.Append(data);

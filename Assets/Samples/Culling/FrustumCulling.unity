@@ -171,7 +171,7 @@ MonoBehaviour:
   subMeshIndex: 0
   instanceMaterial: {fileID: 2100000, guid: 38534e5263593564fa6320b97d972ea1, type: 2}
   mainCamera: {fileID: 2136874884}
-  cullMode: 0
+  cullMode: 1
   cullShader: {fileID: 7200000, guid: 7de6e32b02e5cec4b8ac19fec596dd91, type: 3}
 --- !u!1 &2053989552
 GameObject:

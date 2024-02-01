@@ -68,14 +68,6 @@ public class DrawObjects : MonoBehaviour
         }
 
         m_ArgsBuffer.SetData(m_Args);
-
-        // var k = new LocalKeyword(cullShader, "ConservativeCull");
-        // cullShader.EnableKeyword(k);
-        //
-        // foreach (var keyword in cullShader.shaderKeywords)
-        // {
-        //     Debug.Log(keyword);
-        // }
     }
 
     private void OnEnable()
