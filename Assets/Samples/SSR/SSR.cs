@@ -33,6 +33,7 @@ namespace SSR
     {
         [SerializeField] private SSRSettings mSettings = new SSRSettings();
 
+
         private Shader mShader;
         private const string mShaderName = "Hidden/SSR";
 
@@ -89,10 +90,19 @@ namespace SSR
             internal enum ShaderPass
             {
                 RayMarching,
-                Blur,
+                HorizontalGaussianBlur,
+                VerticalGaussianBlur,
                 Additive,
                 Balance,
             }
+
+            // internal enum ShaderPass
+            // {
+            //     RayMarching,
+            //     Blur,
+            //     Additive,
+            //     Balance,
+            // }
 
             private SSRSettings mSettings;
 
@@ -230,16 +240,18 @@ namespace SSR
                     Blitter.BlitCameraTexture(cmd, mSourceTexture, mSSRTexture0, mMaterial,
                         (int)ShaderPass.RayMarching);
 
-                    // Horizontal Blur
                     cmd.SetGlobalVector(mBlurRadiusID, new Vector4(mSettings.BlurRadius, 0.0f, 0.0f, 0.0f));
-                    Blitter.BlitCameraTexture(cmd, mSSRTexture0, mSSRTexture1, mMaterial, (int)ShaderPass.Blur);
-                    //
-                    // // Vertical Blur
-                    // cmd.SetGlobalVector(mBlurRadiusID, new Vector4(0.0f, mSettings.BlurRadius, 0.0f, 0.0f));
-                    // Blitter.BlitCameraTexture(cmd, mSSRTexture1, mSSRTexture0, mMaterial, (int)ShaderPass.Blur);
+
+                    // Horizontal Blur
+                    Blitter.BlitCameraTexture(cmd, mSSRTexture0, mSSRTexture1, mMaterial,
+                        (int)ShaderPass.HorizontalGaussianBlur);
+
+                    // Vertical Blur
+                    Blitter.BlitCameraTexture(cmd, mSSRTexture1, mSSRTexture0, mMaterial,
+                        (int)ShaderPass.VerticalGaussianBlur);
 
                     // Additive Pass
-                    Blitter.BlitCameraTexture(cmd, mSSRTexture1, mDestinationTexture, mMaterial,
+                    Blitter.BlitCameraTexture(cmd, mSSRTexture0, mDestinationTexture, mMaterial,
                         mSettings.blendMode == BlendMode.Addtive ? (int)ShaderPass.Additive : (int)ShaderPass.Balance);
                 }
 

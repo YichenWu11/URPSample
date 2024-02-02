@@ -18,15 +18,40 @@ Shader "Hidden/SSR"
             ENDHLSL
         }
         
+//        Pass
+//        {
+//            HLSLPROGRAM
+//
+//            #include "Blur.hlsl"
+//            
+//            #pragma vertex Vert
+//            #pragma fragment SSRVerticalGaussianBlur
+//            
+//            ENDHLSL
+//        }
+        
         Pass
         {
-            Name "Blur"
+            Name "SSRHorizontalGaussianBlur"
             HLSLPROGRAM
 
             #include "Blur.hlsl"
             
             #pragma vertex Vert
-            #pragma fragment BlurPassFragment
+            #pragma fragment SSRHorizontalGaussianBlur
+            
+            ENDHLSL
+        }
+        
+        Pass
+        {
+            Name "SSRVerticalGaussianBlur"
+            HLSLPROGRAM
+
+            #include "Blur.hlsl"
+            
+            #pragma vertex Vert
+            #pragma fragment SSRVerticalGaussianBlur
             
             ENDHLSL
         }
