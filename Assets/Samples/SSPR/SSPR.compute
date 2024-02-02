@@ -1,0 +1,96 @@
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+#pragma kernel SSPR
+
+RWTexture2D<half4> _SSPRReflectionTexture;
+RWTexture2D<float> _SSPRHeightBuffer;
+
+float4 _CameraDirection;
+float4 _StretchParams;
+
+TEXTURE2D(_CameraColorTexture);
+TEXTURE2D(_CameraDepthTexture);
+
+SAMPLER(sampler_CameraDepthTexture);
+SAMPLER(sampler_CameraColorTexture);
+
+float4 _SSPRReflectionSize; /* The Size of ReflectionTexture */
+float _ReflectPlaneHeight;
+
+[numthreads(8,8,1)]
+void SSPR(uint3 id : SV_DispatchThreadID)
+{
+    _SSPRReflectionTexture[id.xy] = half4(0.0, 0.0, 0.0, 0.0);
+    _SSPRHeightBuffer[id.xy] = HALF_MAX;
+    // 计算屏幕uv DispatchThreadID：当前线程组在所有线程组里的ID，即图像pos
+    float2 uv = id.xy * _SSPRReflectionSize.zw; // [0, 1]
+    float depth = SAMPLE_DEPTH_TEXTURE_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, uv, 0).r;
+
+    // 根据深度还原世界坐标
+    float3 wpos = ComputeWorldSpacePosition(uv, depth, UNITY_MATRIX_I_VP);
+    // 舍去那些在平面下方的像素
+    if (wpos.y < _ReflectPlaneHeight) return;
+
+    // 计算反射后的世界坐标
+    float3 rwpos = wpos;
+    rwpos.y = -rwpos.y + 2 * _ReflectPlaneHeight;
+
+    // 计算反射后的uv
+    float4 rcpos = TransformWorldToHClip(rwpos);
+    float2 ruv = float2(rcpos.x, rcpos.y * _ProjectionParams.x) * rcp(rcpos.w) * 0.5 + 0.5;
+    if (any(ruv) < 0.0 || any(ruv) > 1.0) return;
+
+    // 像素距离水面越高越往屏幕两边拽
+    float HeightStretch = abs(rwpos.y - _ReflectPlaneHeight);
+    // 把屏幕做对称操作，然后在屏幕两边一定范围内做这个操作
+    float ScreenStretch = saturate(abs(ruv.x * 2.0 - 1.0) - _StretchParams.y);
+    // 如果水平角度看水面则没有像素拉伸的操作，角度越大越强
+    float AngleStretch = saturate(-_CameraDirection.z);
+    // remap to [-1, 1]
+    ruv.x = ruv.x * 2.0 - 1.0;
+    // stretch
+    ruv.x *= 1 + saturate(1 - abs(HeightStretch * AngleStretch * ScreenStretch)) * _StretchParams.x;
+    // remap to [0, 1]
+    ruv.x = saturate(ruv.x * 0.5 + 0.5);
+
+    // 计算反射后的索引
+    float2 ridx = ruv * _SSPRReflectionSize.xy;
+
+    half4 col = SAMPLE_TEXTURE2D_LOD(_CameraColorTexture, sampler_CameraColorTexture, uv, 0);
+
+    // 深度测试 写入更低的颜色
+    if (wpos.y > _SSPRHeightBuffer[ridx])
+        return;
+
+    // 写入深度和颜色
+    _SSPRHeightBuffer[ridx] = wpos.y;
+
+    _SSPRReflectionTexture[ridx] = col;
+}
+
+#pragma kernel FillHole
+
+[numthreads(8,8,1)]
+void FillHole(uint3 id : SV_DispatchThreadID)
+{
+    // fill holes inside each 2*2
+    id.xy *= 2;
+
+    // cache read
+    half4 center = _SSPRReflectionTexture[id.xy + uint2(0, 0)];
+    half4 right = _SSPRReflectionTexture[id.xy + uint2(0, 1)];
+    half4 bottom = _SSPRReflectionTexture[id.xy + uint2(1, 0)];
+    half4 bottomRight = _SSPRReflectionTexture[id.xy + uint2(1, 1)];
+
+    // find best inside 2*2
+    half4 best = center;
+    best = right.a > best.a + 0.5 ? right : best;
+    best = bottom.a > best.a + 0.5 ? bottom : best;
+    best = bottomRight.a > best.a + 0.5 ? bottomRight : best;
+
+    // write better rgba
+    _SSPRReflectionTexture[id.xy + uint2(0, 0)] = best.a > center.a + 0.5 ? best : center;
+    _SSPRReflectionTexture[id.xy + uint2(0, 1)] = best.a > right.a + 0.5 ? best : right;
+    _SSPRReflectionTexture[id.xy + uint2(1, 0)] = best.a > bottom.a + 0.5 ? best : bottom;
+    _SSPRReflectionTexture[id.xy + uint2(1, 1)] = best.a > bottomRight.a + 0.5 ? best : bottomRight;
+}

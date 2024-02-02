@@ -1,25 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7863591660234554708
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6246f08f7f6c5de46aa776378394076c, type: 3}
-  m_Name: SSPR
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  mSettings:
-    RTSize: 512
-    ReflectHeight: 0.2
-    StretchIntensity: 0.1
-    StretchThreshold: 0.3
-    EdgeFadeOut: 0.6
-  mComputeShader: {fileID: 7200000, guid: 4df0c15300f579446b10b5366ac1fa5c, type: 3}
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
   m_Name: SSAO
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     AOMethod: 1
     Downsample: 0
@@ -67,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1614fc811f8f184697d9bee70ab9fe5, type: 3}
   m_Name: DecalRendererFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     technique: 0
     maxDrawDistance: 1000
@@ -88,7 +68,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: URP-HighFidelity-Renderer
+  m_Name: URP-TestRenderer
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7,
@@ -97,8 +77,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: -1878332245247344467}
   - {fileID: -609170430264722653}
-  - {fileID: -7863591660234554708}
-  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7acc2fe500ce9de92
+  - {fileID: 5391036636824096672}
+  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7a04f041d42cfd04a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -141,3 +121,23 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &5391036636824096672
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6246f08f7f6c5de46aa776378394076c, type: 3}
+  m_Name: SSPR
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  mSettings:
+    RTSize: 512
+    ReflectHeight: 0.2
+    StretchIntensity: 0.1
+    StretchThreshold: 0.3
+    EdgeFadeOut: 0.6
+  mComputeShader: {fileID: 7200000, guid: 4df0c15300f579446b10b5366ac1fa5c, type: 3}
