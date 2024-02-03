@@ -71,8 +71,9 @@ half4 SSRPassFragment(Varyings input) : SV_Target
 
     float magnitude = _SSRParams0.x;
 
-    // 视空间坐标  
+    /* 加上相机世界空间坐标后得到世界空间坐标 */
     vpos = _WorldSpaceCameraPos + vpos;
+
     float3 startView = TransformWorldToView(vpos);
     float end = startView.z + rDir.z * magnitude;
     if (end > -_ProjectionParams.y)

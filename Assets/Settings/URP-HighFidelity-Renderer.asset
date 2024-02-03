@@ -67,7 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1614fc811f8f184697d9bee70ab9fe5, type: 3}
   m_Name: DecalRendererFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_Settings:
     technique: 0
     maxDrawDistance: 1000
@@ -99,7 +99,8 @@ MonoBehaviour:
   - {fileID: -609170430264722653}
   - {fileID: -7863591660234554708}
   - {fileID: 5797931711975392819}
-  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7acc2fe500ce9de923306445c2c647650
+  - {fileID: 1166652287391603358}
+  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7acc2fe500ce9de923306445c2c6476509e9a5ffe12c83010
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -142,6 +143,21 @@ MonoBehaviour:
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
   m_IntermediateTextureMode: 1
+--- !u!114 &1166652287391603358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e354597d54201f49886af582eb02bd7, type: 3}
+  m_Name: TAA
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  mSettings:
+    JitterScale: 1
 --- !u!114 &5797931711975392819
 MonoBehaviour:
   m_ObjectHideFlags: 0
