@@ -12,7 +12,6 @@ namespace TAA
         [SerializeField] internal float JitterScale = 1.0f;
     }
 
-
     [DisallowMultipleRendererFeature("TAA")]
     public class TAA : ScriptableRendererFeature
     {
