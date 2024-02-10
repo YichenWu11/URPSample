@@ -1,9 +1,11 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering;
 using UnityEditor;
+using ProfilingScope = UnityEngine.Rendering.ProfilingScope;
 
 [Serializable]
 public class ContactShadowSettings
@@ -11,7 +13,7 @@ public class ContactShadowSettings
     /// <summary>
     /// When enabled, HDRP processes Contact Shadows for this Volume.
     /// </summary>
-    public bool enable = true;
+    public bool enable;
 
     /// <summary>
     /// Controls the length of the rays HDRP uses to calculate Contact Shadows. It is in meters, but it gets scaled by a factor depending on Distance Scale Factor
@@ -83,25 +85,15 @@ public class ContactShadow : ScriptableRendererFeature
     public int m_RenderPassEventOffset = 1;
 
     public ComputeShader contactShadowComputeShader;
-    public ContactShadowSettings m_ContactShadowSettings;
+    public ContactShadowSettings m_ContactShadowSettings = new ContactShadowSettings();
 
     public override void Create()
     {
-        m_ContactShadowPass.UpdateContactShadowParams(m_ContactShadowSettings);
-    }
-
-    public void OnEnable()
-    {
-        m_ContactShadowSettings = new ContactShadowSettings();
         m_ContactShadowPass =
-            new ContactShadowPass(m_RenderPassEvent + m_RenderPassEventOffset, m_ContactShadowSettings,
+            new ContactShadowPass(
+                m_RenderPassEvent + m_RenderPassEventOffset,
+                m_ContactShadowSettings,
                 contactShadowComputeShader);
-        Shader.EnableKeyword("_CONTACT_SHADOW");
-    }
-
-    public void OnDisable()
-    {
-        Shader.DisableKeyword("_CONTACT_SHADOW");
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -141,13 +133,17 @@ public class ContactShadowPass : ScriptableRenderPass
         m_ContactShadowMapProfile = new ProfilingSampler(m_ContactShadowMapProfileTag);
     }
 
-    public void UpdateContactShadowParams(ContactShadowSettings contactShadows)
+    public void UpdateContactShadowParams()
     {
-        m_ContactShadows = contactShadows;
         if (m_ContactShadows.enable)
             Shader.EnableKeyword("_CONTACT_SHADOW");
         else
             Shader.DisableKeyword("_CONTACT_SHADOW");
+    }
+
+    public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+    {
+        UpdateContactShadowParams();
     }
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

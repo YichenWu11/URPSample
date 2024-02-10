@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 ConfigureTarget(destination, destination);
             else
 #endif
-            ConfigureTarget(destination);
+                ConfigureTarget(destination);
             if (m_ShouldClear)
                 ConfigureClear(ClearFlag.All, Color.black);
         }

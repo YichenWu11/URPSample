@@ -20,6 +20,19 @@ MonoBehaviour:
     StretchThreshold: 0.3
     EdgeFadeOut: 0.6
   mComputeShader: {fileID: 7200000, guid: 4df0c15300f579446b10b5366ac1fa5c, type: 3}
+--- !u!114 &-5667292254019784074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c1f5876a4e5211a4fb0835c6c18a705e, type: 3}
+  m_Name: HZBGenerator
+  m_EditorClassIdentifier: 
+  m_Active: 1
 --- !u!114 &-2416110257226519747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32,17 +45,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04bca8a2f4a25df48bda2dfdd50f82f0, type: 3}
   m_Name: ContactShadow
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   m_RenderPassEvent: 200
   m_RenderPassEventOffset: 1
   contactShadowComputeShader: {fileID: 7200000, guid: de0982de443a10c4180102b02b41d02d,
     type: 3}
   m_ContactShadowSettings:
-    enable: 1
-    length: 0.3
+    enable: 0
+    length: 0.5
     opacity: 1
-    distanceScaleFactor: 0.5
-    maxDistance: 50
+    distanceScaleFactor: 0.092
+    maxDistance: 20
     minDistance: 0
     fadeDistance: 12
     fadeInDistance: 0
@@ -130,7 +143,8 @@ MonoBehaviour:
   - {fileID: 5797931711975392819}
   - {fileID: 1166652287391603358}
   - {fileID: -2416110257226519747}
-  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7acc2fe500ce9de923306445c2c6476509e9a5ffe12c830103debd5ab854078de
+  - {fileID: -5667292254019784074}
+  m_RendererFeatureMap: adc0de57c6d2eee5233b66a0b8ca8bf7acc2fe500ce9de923306445c2c6476509e9a5ffe12c830103debd5ab854078de76f2d3b8b8bb59b1
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
