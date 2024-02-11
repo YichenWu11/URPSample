@@ -42,10 +42,18 @@ Shader "Hidden/HiZ"
             float frag(Varyings input) : SV_Target
             {
                 float4 depthSample4 = GATHER_TEXTURE2D_X(_BlitTexture, sampler_PointClamp, input.texcoord);
-                float2 depthSample2 = min(depthSample4.xy, depthSample4.zw);
-                float depthSample = min(depthSample2.x, depthSample2.y);
+                float2 depthSample2;
+                float depthSample;
+            #if UNITY_REVERSED_Z
+                depthSample2 = max(depthSample4.xy, depthSample4.zw);
+                depthSample = max(depthSample2.x, depthSample2.y);
+            #else
+                depthSample2 = min(depthSample4.xy, depthSample4.zw);
+                depthSample = min(depthSample2.x, depthSample2.y);
+            #endif
                 return depthSample;
-            }   
+            }
+            
             ENDHLSL
         }
     }

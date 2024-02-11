@@ -46,7 +46,7 @@ namespace SSR
             {
                 mRenderPass = new RenderPass();
                 // 修改注入点
-                mRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques;
+                mRenderPass.renderPassEvent = RenderPassEvent.AfterRenderingOpaques + 1;
             }
         }
 

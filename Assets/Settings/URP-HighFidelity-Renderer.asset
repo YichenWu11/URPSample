@@ -199,7 +199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e354597d54201f49886af582eb02bd7, type: 3}
   m_Name: TAA
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   mSettings:
     JitterScale: 1
 --- !u!114 &5797931711975392819
@@ -214,7 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c1810064c1073443ba50489a60e75d9, type: 3}
   m_Name: SSR
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   mSettings:
     Intensity: 0.8
     MaxDistance: 10

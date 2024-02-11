@@ -1,8 +1,10 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using ProfilingScope = UnityEngine.Rendering.ProfilingScope;
 
 [Serializable]
 public class HZBSettings
@@ -20,6 +22,8 @@ public class HZBGenerator : ScriptableRendererFeature
     private Material m_hzbMaterial;
 
     private static readonly int s_depthTex = Shader.PropertyToID("_DepthTex");
+    private static readonly int s_hiZBuffer = Shader.PropertyToID("_HiZBuffer");
+    private static readonly int s_maxHiZMipLevel = Shader.PropertyToID("_MaxHiZMipLevel");
 
     public override void Create()
     {
@@ -125,14 +129,11 @@ public class HZBGenerator : ScriptableRendererFeature
                 m_maxMips++;
             }
 
-            m_hizBufferDesc = renderingData.cameraData.cameraTargetDescriptor;
-            m_hizBufferDesc.width = m_hzbSize.x;
-            m_hizBufferDesc.height = m_hzbSize.y;
-            m_hizBufferDesc.useMipMap = true;
-            m_hizBufferDesc.autoGenerateMips = false;
+            m_hizBufferDesc =
+                new RenderTextureDescriptor(m_hzbSize.x, m_hzbSize.y, RenderTextureFormat.RFloat, 0, m_maxMips + 1);
             m_hizBufferDesc.msaaSamples = 1;
-            m_hizBufferDesc.depthBufferBits = 0;
-            m_hizBufferDesc.graphicsFormat = GraphicsFormat.R16_UNorm;
+            m_hizBufferDesc.useMipMap = true;
+            m_hizBufferDesc.sRGB = false;
 
             RenderingUtils.ReAllocateIfNeeded(ref m_hizBuffer, m_hizBufferDesc, FilterMode.Point,
                 TextureWrapMode.Clamp, name: k_hizBufferName);
@@ -166,6 +167,9 @@ public class HZBGenerator : ScriptableRendererFeature
                     name: $"{k_hizBufferIntermediatesNamePrefix}(mip{i + 1})");
             }
 
+            Shader.SetGlobalTexture(s_hiZBuffer, m_hizBuffer);
+            Shader.SetGlobalFloat(s_maxHiZMipLevel, m_maxMips);
+
             ConfigureTarget(m_hizBuffer);
             ConfigureClear(ClearFlag.None, Color.clear);
         }
@@ -189,7 +193,6 @@ public class HZBGenerator : ScriptableRendererFeature
                 // Copy Depth First
                 Blitter.BlitCameraTexture(cmd,
                     renderingData.cameraData.renderer.cameraDepthTargetHandle, m_hizBuffer, m_hzbMaterial, 0);
-
 
                 // Generate Hi-Z Intermediates And Copy To Hi-Z Buffer
                 for (int i = 0; i < m_maxMips; i++)
