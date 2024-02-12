@@ -55,10 +55,18 @@ half3 ReconstructViewPos(float2 uv, float linearEyeDepth)
 float4 TransformViewToHScreen(float3 vpos, float2 screenSize)
 {
     float4 cpos = mul(UNITY_MATRIX_P, vpos);
-    cpos.xy = float2(cpos.x, cpos.y * _ProjectionParams.x) * 0.5 + 0.5 * cpos.w;
+    cpos.xy = float2(cpos.x, cpos.y * _ProjectionParams.x) * 0.5 + 0.5 * cpos.w; // range [0, w]
     cpos.xy *= screenSize;
     return cpos;
 }
+
+// jitter dither map
+static half dither[16] = {
+    0.0, 0.5, 0.125, 0.625,
+    0.75, 0.25, 0.875, 0.375,
+    0.187, 0.687, 0.0625, 0.562,
+    0.937, 0.437, 0.812, 0.312
+};
 
 bool ScreenSpaceRayMarching(float3 startView, float3 rDir, inout float2 hitUV)
 {
@@ -76,7 +84,7 @@ bool ScreenSpaceRayMarching(float3 startView, float3 rDir, inout float2 hitUV)
     float startK = 1.0 / startHScreen.w;
     float endK = 1.0 / endHScreen.w;
 
-    //  结束屏幕空间坐标  
+    // 屏幕空间坐标  
     float2 startScreen = startHScreen.xy * startK;
     float2 endScreen = endHScreen.xy * endK;
 
@@ -121,6 +129,9 @@ bool ScreenSpaceRayMarching(float3 startView, float3 rDir, inout float2 hitUV)
     UNITY_LOOP
     for (int i = 0; i < _SSRParams0.z && P.x * dir <= end; i++)
     {
+        // float2 ditherUV = fmod(P, 4);
+        // float jitter = dither[ditherUV.x * 4 + ditherUV.y];
+
         // 步近  
         P += dp;
         Q.z += dq.z;
@@ -203,17 +214,17 @@ bool HierarchicalZScreenSpaceRayMarching(float3 startView, float3 rDir, inout fl
     float3 Q = startQ;
     float K = startK;
 
-    float mipLevel = 0.0;
+    float mipLevel = 0.0f;
 
     end = endScreen.x * dir;
 
     // 进行屏幕空间射线步近
     UNITY_LOOP
-    for (int i = 0; i < _SSRParams0.z; i++)
+    for (int i = 0; i < _SSRParams0.z && P.x * dir <= end; i++)
     {
         // 步近
         P += dp * exp2(mipLevel);
-        Q += dq * exp2(mipLevel);
+        Q.z += dq.z * exp2(mipLevel);
         K += dk * exp2(mipLevel);
 
         // 得到步近前后两点的深度
@@ -250,7 +261,7 @@ bool HierarchicalZScreenSpaceRayMarching(float3 startView, float3 rDir, inout fl
             else
             {
                 P -= dp * exp2(mipLevel);
-                Q -= dq * exp2(mipLevel);
+                Q.z -= dq.z * exp2(mipLevel);
                 K -= dk * exp2(mipLevel);
                 preZ = Q.z / K;
 

@@ -46,10 +46,10 @@ Shader "Hidden/HiZ"
                 float depthSample;
             #if UNITY_REVERSED_Z
                 depthSample2 = max(depthSample4.xy, depthSample4.zw);
-                depthSample = max(depthSample2.x, depthSample2.y);
+                depthSample  = max(depthSample2.x, depthSample2.y);
             #else
                 depthSample2 = min(depthSample4.xy, depthSample4.zw);
-                depthSample = min(depthSample2.x, depthSample2.y);
+                depthSample  = min(depthSample2.x, depthSample2.y);
             #endif
                 return depthSample;
             }

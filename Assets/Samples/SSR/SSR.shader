@@ -10,6 +10,8 @@ Shader "Hidden/SSR"
             Name "RayMarching"
             HLSLPROGRAM
 
+            #pragma multi_compile_fragment _ _JITTER_ON
+
             #include "SSRPass.hlsl"
             
             #pragma vertex Vert
