@@ -182,7 +182,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
-  m_RenderingMode: 0
+  m_RenderingMode: 1
   m_DepthPrimingMode: 0
   m_CopyDepthMode: 0
   m_AccurateGbufferNormals: 0
@@ -220,7 +220,7 @@ MonoBehaviour:
     MaxDistance: 10
     Stride: 3
     StepCount: 200
-    Thickness: 0.6
+    Thickness: 0.5
     BinaryCount: 6
     jitterDither: 1
     blendMode: 1

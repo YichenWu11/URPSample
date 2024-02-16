@@ -11,7 +11,6 @@ namespace SSR
         Balance
     }
 
-
     [Serializable]
     internal class SSRSettings
     {
@@ -236,7 +235,7 @@ namespace SSR
 
                 using (new ProfilingScope(cmd, mProfilingSampler))
                 {
-                    // SSR
+                    // RayMarching
                     Blitter.BlitCameraTexture(cmd, mSourceTexture, mSSRTexture0, mMaterial,
                         (int)ShaderPass.RayMarching);
 

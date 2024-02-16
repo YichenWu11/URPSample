@@ -142,10 +142,7 @@ public class HZBGenerator : ScriptableRendererFeature
             {
                 foreach (var handle in m_hiZBufferIntermediates)
                 {
-                    if (handle != null)
-                    {
-                        RTHandles.Release(handle);
-                    }
+                    handle?.Release();
                 }
             }
 
@@ -215,17 +212,14 @@ public class HZBGenerator : ScriptableRendererFeature
 
         public void Dispose()
         {
-            RTHandles.Release(m_hizBuffer);
+            m_hizBuffer?.Release();
             m_hizBuffer = null;
 
             if (m_hiZBufferIntermediates != null)
             {
                 foreach (var handle in m_hiZBufferIntermediates)
                 {
-                    if (handle != null)
-                    {
-                        RTHandles.Release(handle);
-                    }
+                    handle?.Release();
                 }
             }
         }

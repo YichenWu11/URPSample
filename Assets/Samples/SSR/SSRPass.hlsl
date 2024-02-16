@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.core/Runtime/Utilities/Blit.hlsl"
 
 #include "Assets/Samples/HZB/DeclareHizBuffer.hlsl"
@@ -26,6 +27,9 @@ float4 _SSRParams1;
 float4 _SSRBlurRadius;
 
 float4 _SourceSize;
+
+// GBuffer
+TEXTURE2D_X_HALF(_GBuffer2);
 
 void swap(inout float v0, inout float v1)
 {
@@ -273,6 +277,24 @@ bool HierarchicalZScreenSpaceRayMarching(float3 startView, float3 rDir, inout fl
     return false;
 }
 
+float4 ImportanceSampleGGX(float2 E, float Roughness)
+{
+    float m = Roughness * Roughness;
+    float m2 = m * m;
+
+    float Phi = 2 * PI * E.x;
+    float CosTheta = sqrt((1 - E.y) / (1 + (m2 - 1) * E.y));
+    float SinTheta = sqrt(1 - CosTheta * CosTheta);
+
+    float3 H = float3(SinTheta * cos(Phi), SinTheta * sin(Phi), CosTheta);
+
+    float d = (CosTheta * m2 - CosTheta) * CosTheta + 1;
+    float D = m2 / (PI * d * d);
+
+    float PDF = D * CosTheta;
+    return float4(H, PDF);
+}
+
 half4 SSRPassFragment(Varyings input) : SV_Target
 {
     float rawDepth = SampleSceneDepth(input.texcoord);
@@ -280,9 +302,33 @@ half4 SSRPassFragment(Varyings input) : SV_Target
 
     float3 vpos = ReconstructViewPos(input.texcoord, linearDepth);
     float3 normal = SampleSceneNormals(input.texcoord);
+    float3 viewNormal = TransformWorldToView(normal);
+
+    // only need roughness info
+    half4 gBuffer2 = SAMPLE_TEXTURE2D_LOD(_GBuffer2, sampler_PointClamp, input.texcoord, 0);
+    half smoothness = gBuffer2.a;
+    half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
+    half roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), HALF_MIN_SQRT);
 
     float3 vDir = normalize(vpos);
-    float3 rDir = TransformWorldToViewDir(normalize(reflect(vDir, normal)));
+
+    float3 H = normal;
+    float2 hash = 0.3f;
+
+    // VertexNormalInputs normalInput = GetVertexNormalInputs(normal);
+    // float3 bitangent = cross(normal.xyz, normalInput.tangentWS.xyz);
+    // half3x3 tangentToWorld = half3x3(normalInput.tangentWS.xyz, bitangent.xyz, normal.xyz);
+    //
+    // if (roughness > 0.1)
+    // {
+    //     H = TransformTangentToWorld(ImportanceSampleGGX(hash, roughness), tangentToWorld);
+    // }
+    // else
+    // {
+    //     H = normal;
+    // }
+
+    float3 rDir = TransformWorldToViewDir(normalize(reflect(vDir, H)));
 
     /* 加上相机世界空间坐标后得到世界空间坐标 */
     vpos = _WorldSpaceCameraPos + vpos;
