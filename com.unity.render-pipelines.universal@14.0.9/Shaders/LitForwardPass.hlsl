@@ -19,48 +19,48 @@
 
 struct Attributes
 {
-    float4 positionOS   : POSITION;
-    float3 normalOS     : NORMAL;
-    float4 tangentOS    : TANGENT;
-    float2 texcoord     : TEXCOORD0;
-    float2 staticLightmapUV   : TEXCOORD1;
-    float2 dynamicLightmapUV  : TEXCOORD2;
+    float4 positionOS : POSITION;
+    float3 normalOS : NORMAL;
+    float4 tangentOS : TANGENT;
+    float2 texcoord : TEXCOORD0;
+    float2 staticLightmapUV : TEXCOORD1;
+    float2 dynamicLightmapUV : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
-    float2 uv                       : TEXCOORD0;
+    float2 uv : TEXCOORD0;
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
-    float3 positionWS               : TEXCOORD1;
-#endif
+    #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    float3 positionWS : TEXCOORD1;
+    #endif
 
-    float3 normalWS                 : TEXCOORD2;
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
-    half4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: sign
-#endif
+    float3 normalWS : TEXCOORD2;
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    half4 tangentWS : TEXCOORD3; // xyz: tangent, w: sign
+    #endif
 
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
     half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
-#else
-    half  fogFactor                 : TEXCOORD5;
-#endif
+    #else
+    half fogFactor : TEXCOORD5;
+    #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD6;
-#endif
+    #endif
 
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirTS                : TEXCOORD7;
-#endif
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    half3 viewDirTS : TEXCOORD7;
+    #endif
 
     DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 8);
-#ifdef DYNAMICLIGHTMAP_ON
+    #ifdef DYNAMICLIGHTMAP_ON
     float2  dynamicLightmapUV : TEXCOORD9; // Dynamic lightmap UVs
-#endif
+    #endif
 
-    float4 positionCS               : SV_POSITION;
+    float4 positionCS : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -69,13 +69,13 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 {
     inputData = (InputData)0;
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     inputData.positionWS = input.positionWS;
-#endif
+    #endif
 
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
-#if defined(_NORMALMAP) || defined(_DETAIL)
-    float sgn = input.tangentWS.w;      // should be either +1 or -1
+    #if defined(_NORMALMAP) || defined(_DETAIL)
+    float sgn = input.tangentWS.w; // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
     half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
@@ -83,32 +83,32 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.tangentToWorld = tangentToWorld;
     #endif
     inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
-#else
+    #else
     inputData.normalWS = input.normalWS;
-#endif
+    #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-#else
+    #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    #endif
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
-#else
+    #else
     inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
-#endif
+    #endif
 
-#if defined(DYNAMICLIGHTMAP_ON)
+    #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
-#else
+    #else
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
-#endif
+    #endif
 
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
@@ -156,38 +156,38 @@ Varyings LitPassVertex(Attributes input)
 
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     real sign = input.tangentOS.w * GetOddNegativeScale();
     half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
-#endif
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+    #endif
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
     output.tangentWS = tangentWS;
-#endif
+    #endif
 
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
-#endif
+    #endif
 
     OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
-#ifdef DYNAMICLIGHTMAP_ON
+    #ifdef DYNAMICLIGHTMAP_ON
     output.dynamicLightmapUV = input.dynamicLightmapUV.xy * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-#endif
+    #endif
     OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
-#else
+    #else
     output.fogFactor = fogFactor;
-#endif
+    #endif
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+    #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     output.positionWS = vertexInput.positionWS;
-#endif
+    #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
-#endif
+    #endif
 
     output.positionCS = vertexInput.positionCS;
 
@@ -198,38 +198,38 @@ Varyings LitPassVertex(Attributes input)
 void LitPassFragment(
     Varyings input
     , out half4 outColor : SV_Target0
-#ifdef _WRITE_RENDERING_LAYERS
+    #ifdef _WRITE_RENDERING_LAYERS
     , out float4 outRenderingLayers : SV_Target1
-#endif
+    #endif
 )
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-#if defined(_PARALLAXMAP)
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+    #if defined(_PARALLAXMAP)
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;
-#else
+    #else
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
-#endif
+    #endif
     ApplyPerPixelDisplacement(viewDirTS, input.uv);
-#endif
+    #endif
 
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-#ifdef LOD_FADE_CROSSFADE
+    #ifdef LOD_FADE_CROSSFADE
     LODFadeCrossFade(input.positionCS);
-#endif
+    #endif
 
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
-#ifdef _DBUFFER
+    #ifdef _DBUFFER
     ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
-#endif
+    #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
@@ -237,10 +237,10 @@ void LitPassFragment(
 
     outColor = color;
 
-#ifdef _WRITE_RENDERING_LAYERS
+    #ifdef _WRITE_RENDERING_LAYERS
     uint renderingLayers = GetMeshRenderingLayer();
     outRenderingLayers = float4(EncodeMeshRenderingLayer(renderingLayers), 0, 0, 0);
-#endif
+    #endif
 }
 
 #endif

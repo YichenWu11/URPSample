@@ -144,7 +144,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
             #pragma multi_compile_fragment _ _LIGHT_COOKIES
 
-            #pragma multi_compile_fragment _ _CONTACT_SHADOW
+            #pragma multi_compile_fragment _ _CONTACT_SHADOW //Add
             
             #pragma multi_compile _ _LIGHT_LAYERS
             #pragma multi_compile _ _FORWARD_PLUS

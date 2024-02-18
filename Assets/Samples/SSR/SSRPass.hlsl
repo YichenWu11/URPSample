@@ -302,13 +302,13 @@ half4 SSRPassFragment(Varyings input) : SV_Target
 
     float3 vpos = ReconstructViewPos(input.texcoord, linearDepth);
     float3 normal = SampleSceneNormals(input.texcoord);
-    float3 viewNormal = TransformWorldToView(normal);
-
-    // only need roughness info
-    half4 gBuffer2 = SAMPLE_TEXTURE2D_LOD(_GBuffer2, sampler_PointClamp, input.texcoord, 0);
-    half smoothness = gBuffer2.a;
-    half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
-    half roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), HALF_MIN_SQRT);
+    // float3 viewNormal = TransformWorldToView(normal);
+    //
+    // // only need roughness info
+    // half4 gBuffer2 = SAMPLE_TEXTURE2D_LOD(_GBuffer2, sampler_PointClamp, input.texcoord, 0);
+    // half smoothness = gBuffer2.a;
+    // half perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(smoothness);
+    // half roughness = max(PerceptualRoughnessToRoughness(perceptualRoughness), HALF_MIN_SQRT);
 
     float3 vDir = normalize(vpos);
 
@@ -328,7 +328,7 @@ half4 SSRPassFragment(Varyings input) : SV_Target
     //     H = normal;
     // }
 
-    float3 rDir = TransformWorldToViewDir(normalize(reflect(vDir, H)));
+    float3 rDir = TransformWorldToViewDir(normalize(reflect(vDir, normal)));
 
     /* 加上相机世界空间坐标后得到世界空间坐标 */
     vpos = _WorldSpaceCameraPos + vpos;

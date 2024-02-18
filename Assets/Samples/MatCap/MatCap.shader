@@ -4,8 +4,8 @@ Shader "Unlit/MatCap"
     {
         _MatCap ("Texture", 2D) = "white" {}
         _BaseColor("Color", Color) = (1,1,1,1)
-//        [ToggleOff] _IterationSample("Use Interation Sample", Float) = 0.0
-        [Toggle] _IterationSample("Use Interation Sample", Float) = 0.0
+        [Toggle] _IterationSample("Use Interation Sample", Float) = 0.0    // _IterationSample_ON
+//        [ToggleOff] _IterationSample("Use Interation Sample", Float) = 0.0 // _IterationSample_OFF
     }
     SubShader
     {
@@ -33,9 +33,11 @@ Shader "Unlit/MatCap"
             struct Varyings
             {
                 float4 MainUVAndMatCapUV : TEXCOORD0;
-                float3 viewNormal : TEXCOORD1;
-                float3 positionVS : TEXCOORD2;
-                float4 positionCS : SV_POSITION;
+                float3 viewNormal  : TEXCOORD1;
+                float3 worldNormal : TEXCOORD2;
+                float3 positionWS  : TEXCOORD3;
+                float3 positionVS  : TEXCOORD4;
+                float4 positionCS  : SV_POSITION;
             };
 
             TEXTURE2D( _MatCap);
@@ -47,9 +49,11 @@ Shader "Unlit/MatCap"
             {
                 Varyings output;
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS);
+                output.positionWS = vertexInput.positionWS;
                 output.positionCS = vertexInput.positionCS;
                 output.positionVS = vertexInput.positionVS;
                 output.MainUVAndMatCapUV.xy = input.texcoord;
+                output.worldNormal = TransformWorldToViewDir(input.normalOS);
                 float3 viewNormal = TransformObjectToWorldDir(TransformWorldToViewDir(input.normalOS));
                 output.MainUVAndMatCapUV.zw = viewNormal * 0.5f + 0.5f;
                 output.viewNormal = viewNormal;
@@ -59,6 +63,10 @@ Shader "Unlit/MatCap"
 
             half4 frag (Varyings input) : SV_Target
             {
+                float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+                float3 R = reflect(V, input.worldNormal);
+                float2 R_UV = R * 0.5f + 0.5f;
+                
                 float3 viewDir = normalize(input.positionVS);
                 float3 reflectDir = reflect(viewDir, input.viewNormal);
                 float3 helper = float3(reflectDir.x, reflectDir.y, reflectDir.z + 1.0f);
@@ -66,8 +74,6 @@ Shader "Unlit/MatCap"
                 float3 sampleNormal =  helper * rcp(res0);
                 sampleNormal = sampleNormal * 0.5f + 0.5f;
                 
-                float2 reflectUV = reflectDir * 0.5f + 0.5f;
-
                 #if _ITERATIONSAMPLE_ON
                 float2 matCapUV = sampleNormal;
                 #else

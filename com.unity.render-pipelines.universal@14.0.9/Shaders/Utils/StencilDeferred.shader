@@ -274,7 +274,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half surfaceDataOcclusion = gbuffer1.a;
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
 
-        half3 color = 0.0.xxx;
+        half3 color = half3(0.0h, 0.0h, 0.0h);
         half alpha = 1.0;
 
         #if defined(_DEFERRED_MIXED_LIGHTING)
