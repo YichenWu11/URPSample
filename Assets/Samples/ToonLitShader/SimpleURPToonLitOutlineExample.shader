@@ -630,5 +630,5 @@ Shader "SimpleURPToonLitExample(With Outline)"
     FallBack "Hidden/Universal Render Pipeline/FallbackError"
     
     // Custom editor is possible! We recommend checking out LWGUI(https://github.com/JasonMa0012/LWGUI)
-    //CustomEditor "LWGUI.LWGUI"
+    CustomEditor "LWGUI.LWGUI"
 }

@@ -4,7 +4,8 @@ Shader "Unlit/MatCap"
     {
         _MatCap ("Texture", 2D) = "white" {}
         _BaseColor("Color", Color) = (1,1,1,1)
-        [Toggle] _IterationSample("Use Interation Sample", Float) = 0.0    // _IterationSample_ON
+//        [ToggleUI] _IterationSample("Use Interation Sample", Float) = 0.0  // float _IterationSample;  
+        [Toggle] _IterationSample("Use Interation Sample", Float) = 0.0      // _IterationSample_ON
 //        [ToggleOff] _IterationSample("Use Interation Sample", Float) = 0.0 // _IterationSample_OFF
     }
     SubShader

@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.jasonma.lwgui": {
+      "version": "file:E:/GitProject/GameEngine/unity_project/Pkg/LWGUI-dev",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.burst": {
       "version": "1.8.10",
       "depth": 1,
