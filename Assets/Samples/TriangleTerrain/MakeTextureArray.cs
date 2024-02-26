@@ -5,8 +5,8 @@ using System.ComponentModel;
 using UnityEngine;
 using System.IO;
 using Unity.Mathematics;
-using UnityEditor.Build;
 #if UNITY_EDITOR
+using UnityEditor.Build;
 using UnityEditor;
 #endif
 
@@ -100,41 +100,41 @@ public class MakeTextureArray : MonoBehaviour
         var weightVal = new int[width * height];
 
         for (int i = 0; i < width; i++)
-        for (int j = 0; j < height; j++)
-        {
-            for (int k = 0; k < splatCount; k++)
+            for (int j = 0; j < height; j++)
             {
-                weights[k].weight = maps[i, j, k];
-                weights[k].index = k;
-            }
-
-            Array.Sort(weights, (a, b) => { return -a.weight.CompareTo(b.weight); });
-            var tw = 0f;
-            var blendCount = 2;
-            for (int k = 0; k < blendCount; k++)
-                tw += weights[k].weight;
-            if (tw == 0)
-            {
-                tw = 1;
-                weights[0].weight = 1;
-            }
-            else
-            {
-                for (int k = 0; k < blendCount; k++)
+                for (int k = 0; k < splatCount; k++)
                 {
-                    weights[k].weight /= tw;
+                    weights[k].weight = maps[i, j, k];
+                    weights[k].index = k;
                 }
-            }
 
-            if (weights[1].weight == 0)
-            {
-                weights[1].index = weights[0].index;
-            }
+                Array.Sort(weights, (a, b) => { return -a.weight.CompareTo(b.weight); });
+                var tw = 0f;
+                var blendCount = 2;
+                for (int k = 0; k < blendCount; k++)
+                    tw += weights[k].weight;
+                if (tw == 0)
+                {
+                    tw = 1;
+                    weights[0].weight = 1;
+                }
+                else
+                {
+                    for (int k = 0; k < blendCount; k++)
+                    {
+                        weights[k].weight /= tw;
+                    }
+                }
 
-            tileIndex[i * height + j] = new int2(weights[0].index, weights[1].index);
-            float weightDiff = Mathf.Clamp(weights[0].weight - weights[1].weight, 0, 0.999999f);
-            weightVal[i * height + j] = Mathf.FloorToInt(64f * weightDiff);
-        }
+                if (weights[1].weight == 0)
+                {
+                    weights[1].index = weights[0].index;
+                }
+
+                tileIndex[i * height + j] = new int2(weights[0].index, weights[1].index);
+                float weightDiff = Mathf.Clamp(weights[0].weight - weights[1].weight, 0, 0.999999f);
+                weightVal[i * height + j] = Mathf.FloorToInt(64f * weightDiff);
+            }
 
         var texByte = new ushort[width * height];
         for (int i = 0; i < tileIndex.Length; i++)
