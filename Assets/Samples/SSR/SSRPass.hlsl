@@ -257,7 +257,7 @@ bool HierarchicalZScreenSpaceRayMarching(float3 startView, float3 rDir, inout fl
         }
         else
         {
-            if (mipLevel == 0)
+            if (mipLevel == 0.0f)
             {
                 if (abs(surfaceDepth - rayZMax) < _SSRParams0.w)
                     return true;

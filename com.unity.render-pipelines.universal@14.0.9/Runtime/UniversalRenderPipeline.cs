@@ -51,8 +51,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 // TODO: Would be better to add Profiling name hooks into RenderPipeline.cs, requires changes outside of Universal.
 #if UNITY_2021_1_OR_NEWER
-                public static readonly ProfilingSampler beginContextRendering  = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginContextRendering)}");
-                public static readonly ProfilingSampler endContextRendering    = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndContextRendering)}");
+                public static readonly ProfilingSampler beginContextRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginContextRendering)}");
+                public static readonly ProfilingSampler endContextRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndContextRendering)}");
 #else
                 public static readonly ProfilingSampler beginFrameRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(BeginFrameRendering)}");
                 public static readonly ProfilingSampler endFrameRendering = new ProfilingSampler($"{nameof(RenderPipeline)}.{nameof(EndFrameRendering)}");
@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_GlobalSettings == null || UniversalRenderPipelineGlobalSettings.instance == null)
             {
                 m_GlobalSettings = UniversalRenderPipelineGlobalSettings.Ensure();
-                if(m_GlobalSettings == null) return;
+                if (m_GlobalSettings == null) return;
             }
 #endif
 
@@ -433,7 +433,7 @@ namespace UnityEngine.Rendering.Universal
             StandardRequest standardRequest = renderRequest as StandardRequest;
             SingleCameraRequest singleRequest = renderRequest as SingleCameraRequest;
 
-            if(standardRequest != null || singleRequest != null)
+            if (standardRequest != null || singleRequest != null)
             {
                 RenderTexture destination = standardRequest != null ? standardRequest.destination : singleRequest.destination;
                 int mipLevel = standardRequest != null ? standardRequest.mipLevel : singleRequest.mipLevel;
@@ -460,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
                 RTDesc.height = Mathf.Max(1, RTDesc.height);
 
                 //if mip is 0 and target is Texture2D we can immediately render to the requested destination
-                if(destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
+                if (destination.dimension != TextureDimension.Tex2D || mipLevel != 0)
                 {
                     temporaryRT = RenderTexture.GetTemporary(RTDesc);
                 }
@@ -476,9 +476,9 @@ namespace UnityEngine.Rendering.Universal
                     RenderSingleCameraInternal(context, camera);
                 }
 
-                if(temporaryRT)
+                if (temporaryRT)
                 {
-                    switch(destination.dimension)
+                    switch (destination.dimension)
                     {
                         case TextureDimension.Tex2D:
                         case TextureDimension.Tex2DArray:
@@ -499,7 +499,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                Debug.LogWarning("The given RenderRequest type: " + typeof(RequestData).FullName  + ", is either invalid or unsupported by the current pipeline");
+                Debug.LogWarning("The given RenderRequest type: " + typeof(RequestData).FullName + ", is either invalid or unsupported by the current pipeline");
             }
         }
 
@@ -608,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
                 if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
                     ScriptableRenderContext.EmitGeometryForCamera(camera);
 #if UNITY_EDITOR
-                 else if (isSceneViewCamera)
+                else if (isSceneViewCamera)
                     ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
 
@@ -616,7 +616,7 @@ namespace UnityEngine.Rendering.Universal
                 // Called and updated only once, as the same camera can be rendered multiple times.
                 // NOTE: Tracks only the current (this) camera, not shadow views or any other offscreen views.
                 // NOTE: Shared between both Execute and Render (RG) paths.
-                if(camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
+                if (camera.TryGetComponent<UniversalAdditionalCameraData>(out var additionalCameraData))
                     additionalCameraData.motionVectorsPersistentData.Update(ref cameraData);
 
                 // Update TAA persistent data based on cameraData. Most importantly resize the history render targets.
@@ -859,7 +859,7 @@ namespace UnityEngine.Rendering.Universal
                             CameraData overlayCameraData = baseCameraData;
                             overlayCameraData.camera = currCamera;
                             overlayCameraData.baseCamera = baseCamera;
-                            
+
                             UpdateCameraStereoMatrices(currAdditionalCameraData.camera, xrPass);
 
                             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
@@ -874,7 +874,7 @@ namespace UnityEngine.Rendering.Universal
 
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
                             InitializeAdditionalCameraData(currCamera, currAdditionalCameraData, lastCamera, ref overlayCameraData);
-                            
+
                             overlayCameraData.stackAnyPostProcessingEnabled = anyPostProcessingEnabled;
                             overlayCameraData.stackLastCameraOutputToHDR = finalOutputHDR;
 
@@ -1522,7 +1522,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Fill new history with current frame
                 // XR Multipass renders a "frame" per eye
-                if(allocation)
+                if (allocation)
                     cameraData.taaSettings.resetHistoryFrames += xrMultipassEnabled ? 2 : 1;
             }
             else
@@ -1704,50 +1704,50 @@ namespace UnityEngine.Rendering.Universal
             switch (selection)
             {
                 case UpscalingFilterSelection.Auto:
-                {
-                    // The user selected "auto" for their upscaling filter so we should attempt to choose the best filter
-                    // for the current situation. When the current resolution and render scale are compatible with integer
-                    // scaling we use the point sampling filter. Otherwise we just use the default filter (linear).
-                    float pixelScale = (1.0f / renderScale);
-                    bool isIntegerScale = Mathf.Approximately((pixelScale - Mathf.Floor(pixelScale)), 0.0f);
-
-                    if (isIntegerScale)
                     {
-                        float widthScale = (imageSize.x / pixelScale);
-                        float heightScale = (imageSize.y / pixelScale);
+                        // The user selected "auto" for their upscaling filter so we should attempt to choose the best filter
+                        // for the current situation. When the current resolution and render scale are compatible with integer
+                        // scaling we use the point sampling filter. Otherwise we just use the default filter (linear).
+                        float pixelScale = (1.0f / renderScale);
+                        bool isIntegerScale = Mathf.Approximately((pixelScale - Mathf.Floor(pixelScale)), 0.0f);
 
-                        bool isImageCompatible = (Mathf.Approximately((widthScale - Mathf.Floor(widthScale)), 0.0f) &&
-                                                  Mathf.Approximately((heightScale - Mathf.Floor(heightScale)), 0.0f));
-
-                        if (isImageCompatible)
+                        if (isIntegerScale)
                         {
-                            filter = ImageUpscalingFilter.Point;
+                            float widthScale = (imageSize.x / pixelScale);
+                            float heightScale = (imageSize.y / pixelScale);
+
+                            bool isImageCompatible = (Mathf.Approximately((widthScale - Mathf.Floor(widthScale)), 0.0f) &&
+                                                      Mathf.Approximately((heightScale - Mathf.Floor(heightScale)), 0.0f));
+
+                            if (isImageCompatible)
+                            {
+                                filter = ImageUpscalingFilter.Point;
+                            }
                         }
+
+                        break;
                     }
 
-                    break;
-                }
-
                 case UpscalingFilterSelection.Linear:
-                {
-                    // Do nothing since linear is already the default
+                    {
+                        // Do nothing since linear is already the default
 
-                    break;
-                }
+                        break;
+                    }
 
                 case UpscalingFilterSelection.Point:
-                {
-                    filter = ImageUpscalingFilter.Point;
+                    {
+                        filter = ImageUpscalingFilter.Point;
 
-                    break;
-                }
+                        break;
+                    }
 
                 case UpscalingFilterSelection.FSR:
-                {
-                    filter = ImageUpscalingFilter.FSR;
+                    {
+                        filter = ImageUpscalingFilter.FSR;
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             return filter;

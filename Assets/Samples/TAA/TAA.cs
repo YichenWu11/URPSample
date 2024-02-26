@@ -99,7 +99,7 @@ namespace TAA
             {
                 mSettings = featureSettings;
 
-                // ConfigureInput(ScriptableRenderPassInput.Motion);
+                ConfigureInput(ScriptableRenderPassInput.Motion);
 
                 return true;
             }

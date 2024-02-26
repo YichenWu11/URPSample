@@ -1064,11 +1064,11 @@ namespace UnityEngine.Rendering.Universal
         internal void RecordCustomRenderGraphPasses(RenderGraph renderGraph, ScriptableRenderContext context, ref RenderingData renderingData, RenderPassEvent injectionPoint)
         {
             int range = ScriptableRenderPass.GetRenderPassEventRange(injectionPoint);
-            int nextValue = (int) injectionPoint + range;
+            int nextValue = (int)injectionPoint + range;
 
             foreach (ScriptableRenderPass pass in m_ActiveRenderPassQueue)
             {
-                if (pass.renderPassEvent >= injectionPoint && (int) pass.renderPassEvent < nextValue)
+                if (pass.renderPassEvent >= injectionPoint && (int)pass.renderPassEvent < nextValue)
                     pass.RecordRenderGraph(renderGraph, ref renderingData);
             }
         }

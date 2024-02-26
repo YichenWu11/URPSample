@@ -4,15 +4,24 @@ using UnityEngine;
 
 public class ReplaceMaterial : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public GameObject go;
 
-    // Update is called once per frame
-    void Update()
+    private const string k_toonShaderName = "SimpleURPToonLitExample(With Outline)";
+
+    public void ReplaceAll()
     {
-        
+        if (go == null)
+            return;
+
+        var renderers = go.GetComponentsInChildren<SkinnedMeshRenderer>();
+
+        foreach (var r in renderers)
+        {
+            // Debug.Log(r.sharedMaterial.mainTexture.name);
+            Material sharedMaterial = r.sharedMaterial;
+            var mainTex = sharedMaterial.mainTexture;
+            sharedMaterial.shader = Shader.Find(k_toonShaderName);
+            sharedMaterial.mainTexture = mainTex;
+        }
     }
 }

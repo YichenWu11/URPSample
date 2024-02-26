@@ -1,18 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
-public class ReplaceMaterialEditor : MonoBehaviour
+[CustomEditor(typeof(ReplaceMaterial))]
+public class ReplaceMaterialEditor : Editor
 {
-    // Start is called before the first frame update
-    void Start()
+    public override void OnInspectorGUI()
     {
-        
-    }
+        base.OnInspectorGUI();
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        var replaceMaterial = target as ReplaceMaterial;
+
+        if (GUILayout.Button("ReplaceAll"))
+        {
+            replaceMaterial.ReplaceAll();
+        }
     }
 }
