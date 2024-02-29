@@ -308,6 +308,8 @@ namespace UnityEngine.Rendering.Universal
             useRenderGraph = false;
 #endif
 
+            // useRenderGraph = true;
+
             SetHDRState(cameras);
 
             // When HDR is active we render UI overlay per camera as we want all UI to be calibrated to white paper inside a single pass
