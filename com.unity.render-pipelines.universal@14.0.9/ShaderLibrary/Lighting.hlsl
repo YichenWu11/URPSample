@@ -185,6 +185,7 @@ half3 CalculateLightingColor(LightingData lightingData, half3 albedo)
     }
 
     return lightingColor;
+    // return lightingData.mainLightColor;
 }
 
 half4 CalculateFinalColor(LightingData lightingData, half alpha)

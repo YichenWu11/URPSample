@@ -89,7 +89,9 @@ namespace UnityEngine.Rendering.Universal
 
                 for (var binIndex = minBin; binIndex <= maxBin; binIndex++)
                 {
+                    // binOffset = 0 (non-vr)
                     var baseIndex = (binOffset + binIndex) * (headerLength + wordsPerTile);
+                    // light : headerIndex = 0; reflectionProbe : headerIndex = 1
                     var (minIndex, maxIndex) = DecodeHeader(bins[baseIndex + headerIndex]);
                     minIndex = math.min(minIndex, (uint)index);
                     maxIndex = math.max(maxIndex, (uint)index);

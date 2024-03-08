@@ -213,8 +213,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 do
                 {
                     m_ActualTileWidth <<= 1;
+                    // 计算 screenResolution 可以被多少个 m_ActualTileWidth 的块完全覆盖
                     m_TileResolution = (screenResolution + m_ActualTileWidth - 1) / m_ActualTileWidth;
                 }
+                // m_TileResolution.x * m_TileResolution.y 为铺满 Screen 的 Tile 总数量
+                // 一个 Tile 对应一个 m_TileMasks 中的一个 uint (maxVisibleAdditionalLights <= 32 时)
                 while ((m_TileResolution.x * m_TileResolution.y * m_WordsPerTile * viewCount) > UniversalRenderPipeline.maxTileWords);
 
                 if (!camera.orthographic)
@@ -223,14 +226,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((math.log2(camera.farClipPlane) - math.log2(camera.nearClipPlane)) * (2 + m_WordsPerTile));
                     m_ZBinOffset = -math.log2(camera.nearClipPlane) * m_ZBinScale;
                     m_BinCount = (int)(math.log2(camera.farClipPlane) * m_ZBinScale + m_ZBinOffset);
+                    // Debug.Log($"BinCount: {m_BinCount}");
                 }
                 else
                 {
                     // Use to calculate binIndex = z * zBinScale + zBinOffset
+                    // 这里的 2，指的是后面 ZBinningJob 中的 HeaderLength
+                    // HeaderLength + m_WordsPerTile 才是实际的长度
                     m_ZBinScale = (UniversalRenderPipeline.maxZBinWords / viewCount) / ((camera.farClipPlane - camera.nearClipPlane) * (2 + m_WordsPerTile));
                     m_ZBinOffset = -camera.nearClipPlane * m_ZBinScale;
                     m_BinCount = (int)(camera.farClipPlane * m_ZBinScale + m_ZBinOffset);
                 }
+
 
                 var worldToViews = new Fixed2<float4x4>(cameraData.GetViewMatrix(0), cameraData.GetViewMatrix(math.min(1, viewCount - 1)));
                 var viewToClips = new Fixed2<float4x4>(cameraData.GetProjectionMatrix(0), cameraData.GetProjectionMatrix(math.min(1, viewCount - 1)));
@@ -241,6 +248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return probe.importance < otherProbe.importance || probe.bounds.extents.sqrMagnitude > otherProbe.bounds.extents.sqrMagnitude;
                 }
 
+                // 对可见的 ReflectionProbe 做排序
                 for (var i = 1; i < reflectionProbeCount; i++)
                 {
                     var probe = reflectionProbes[i];
@@ -256,6 +264,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var minMaxZs = new NativeArray<float2>(itemsPerTile * viewCount, Allocator.TempJob);
 
+                // 计算每个 Light 所影响到的 z 范围，结果存储在 minMaxZs[index] 中
+                // minMaxZs[index] => (zmin, zmax)
                 var lightMinMaxZJob = new LightMinMaxZJob
                 {
                     worldToViews = worldToViews,
@@ -265,6 +275,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // Innerloop batch count of 32 is not special, just a handwavy amount to not have too much scheduling overhead nor too little parallelism.
                 var lightMinMaxZHandle = lightMinMaxZJob.ScheduleParallel(m_LightCount * viewCount, 32, new JobHandle());
 
+                // 计算每个 ReflectionProbe 所影响到的 z 范围，结果存储在 minMaxZs[index] 中
+                // minMaxZs[index] => (zmin, zmax)
                 var reflectionProbeMinMaxZJob = new ReflectionProbeMinMaxZJob
                 {
                     worldToViews = worldToViews,
@@ -273,6 +285,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
                 var reflectionProbeMinMaxZHandle = reflectionProbeMinMaxZJob.ScheduleParallel(reflectionProbeCount * viewCount, 32, lightMinMaxZHandle);
 
+                // 计算出有多少个 Batch，每 128 个 Bin 是一个 Batch
                 var zBinningBatchCount = (m_BinCount + ZBinningJob.batchSize - 1) / ZBinningJob.batchSize;
                 var zBinningJob = new ZBinningJob
                 {
@@ -292,20 +305,24 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 reflectionProbeMinMaxZHandle.Complete();
 
+                // zBinningHandle.Complete();
+                // Debug.Log($"header: {m_ZBins[0] & 0xFFFF}, {(m_ZBins[0] >> 16) & 0xFFFF}");
+
                 // We want to calculate `fovHalfHeight = tan(fov / 2)`
                 // `projection[1][1]` contains `1 / tan(fov / 2)`
-                var fovHalfHeights = new Fixed2<float>(1.0f/viewToClips[0][1][1], 1.0f/viewToClips[1][1][1]);
+                var fovHalfHeights = new Fixed2<float>(1.0f / viewToClips[0][1][1], 1.0f / viewToClips[1][1][1]);
                 // Each light needs 1 range for Y, and a range per row. Align to 128-bytes to avoid false sharing.
                 var rangesPerItem = AlignByteCount((1 + m_TileResolution.y) * UnsafeUtility.SizeOf<InclusiveRange>(), 128) / UnsafeUtility.SizeOf<InclusiveRange>();
+                // Debug.Log($"{rangesPerItem} {(1 + m_TileResolution.y)} {UnsafeUtility.SizeOf<InclusiveRange>()}");
                 var tileRanges = new NativeArray<InclusiveRange>(rangesPerItem * itemsPerTile * viewCount, Allocator.TempJob);
                 var tilingJob = new TilingJob
                 {
                     lights = visibleLights,
                     reflectionProbes = reflectionProbes,
                     tileRanges = tileRanges,
-                    itemsPerTile = itemsPerTile,
+                    itemsPerTile = itemsPerTile, // visibleLights.Length + reflectionProbeCount
                     rangesPerItem = rangesPerItem,
-                    worldToViews = worldToViews,
+                    worldToViews = worldToViews, // worldToViews of Camera
                     centerOffset = cameraData.xrRendering && cameraData.xr.viewCount > 0 ? 2f * cameraData.xr.ApplyXRViewCenterOffset(math.float2(0.0f, 0.0f)) : float4.zero,
                     tileScale = (float2)screenResolution / m_ActualTileWidth,
                     tileScaleInv = m_ActualTileWidth / (float2)screenResolution,
@@ -318,6 +335,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 var tileRangeHandle = tilingJob.ScheduleParallel(itemsPerTile * viewCount, 1, reflectionProbeMinMaxZHandle);
 
+                // tileRanges : tile X 方向上
                 var expansionJob = new TileRangeExpansionJob
                 {
                     tileRanges = tileRanges,
@@ -329,6 +347,18 @@ namespace UnityEngine.Rendering.Universal.Internal
                 };
 
                 var tilingHandle = expansionJob.ScheduleParallel(m_TileResolution.y * viewCount, 1, tileRangeHandle);
+
+                // tileRangeHandle.Complete();
+                // if (!test)
+                // {
+                //     Debug.Log($"{tileRanges.Length} {m_TileResolution.x} {m_TileResolution.y}");
+                //     for (int i = 0; i < tileRanges.Length; ++i)
+                //     {
+                //         Debug.Log($"start:{tileRanges[i].start} end:{tileRanges[i].end}; ");
+                //     }
+                //     test = true;
+                // }
+
                 m_CullingHandle = JobHandle.CombineDependencies(
                     minMaxZs.Dispose(zBinningHandle),
                     tileRanges.Dispose(tilingHandle));

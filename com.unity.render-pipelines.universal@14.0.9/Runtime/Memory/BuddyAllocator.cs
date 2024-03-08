@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering.Universal
 {
-    struct BuddyAllocation
+    public struct BuddyAllocation
     {
         public int level;
         public int index;
@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.Universal
         public uint2 index2D => SpaceFillingCurves.DecodeMorton2D((uint)index);
     }
 
-    unsafe struct BuddyAllocator : IDisposable
+    unsafe public struct BuddyAllocator : IDisposable
     {
         struct Header
         {
@@ -39,14 +39,14 @@ namespace UnityEngine.Rendering.Universal
 
         ref Header header => ref UnsafeUtility.AsRef<Header>(m_Data);
 
-        (int, int) m_ActiveFreeMaskCounts;
+        (int, int) m_ActiveFreeMaskCounts; // (offset, length)
         NativeArray<int> freeMaskCounts => GetNativeArray<int>(m_ActiveFreeMaskCounts.Item1, m_ActiveFreeMaskCounts.Item2);
 
-        (int, int) m_FreeMasksStorage;
+        (int, int) m_FreeMasksStorage; // (offset, length)
         NativeArray<ulong> freeMasksStorage => GetNativeArray<ulong>(m_FreeMasksStorage.Item1, m_FreeMasksStorage.Item2);
         NativeArray<ulong> FreeMasks(int level) => freeMasksStorage.GetSubArray(LevelOffset64(level, header.branchingOrder), LevelLength64(level, header.branchingOrder));
 
-        (int, int) m_FreeMaskIndicesStorage;
+        (int, int) m_FreeMaskIndicesStorage; // (offset, length)
         NativeArray<int> freeMaskIndicesStorage => GetNativeArray<int>(m_FreeMaskIndicesStorage.Item1, m_FreeMaskIndicesStorage.Item2);
         NativeArray<int> FreeMaskIndices(int level) => freeMaskIndicesStorage.GetSubArray(LevelOffset64(level, header.branchingOrder), LevelLength64(level, header.branchingOrder));
 
@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.Universal
 
         public int levelCount => header.levelCount;
 
+        // branchingOrder : 猜测为数据的维度
         public BuddyAllocator(int levelCount, int branchingOrder, Allocator allocator = Allocator.Persistent)
         {
             // Allows us to support 1D, 2D, and 3D cases.
@@ -66,10 +67,15 @@ namespace UnityEngine.Rendering.Universal
             Assert.IsTrue((levelCount + branchingOrder - 1) / branchingOrder is >= 1 and <= 24);
 
             var dataSize = sizeof(Header);
+            // dataSize 加上了 levelCount 个 int 的长度, int : 4 bytes
             m_ActiveFreeMaskCounts = AllocateRange<int>(levelCount, ref dataSize);
+            // ulong: 8 Bytes
             m_FreeMasksStorage = AllocateRange<ulong>(LevelOffset64(levelCount, branchingOrder), ref dataSize);
             m_FreeMaskIndicesStorage = AllocateRange<int>(LevelOffset64(levelCount, branchingOrder), ref dataSize);
 
+            // dataSize = headerSize + levelCount个int 
+            //            + LevelOffset64(levelCount, branchingOrder) 个 ulong
+            //            + LevelOffset64(levelCount, branchingOrder) 个 int
             m_Data = UnsafeUtility.Malloc(dataSize, 64, allocator);
             UnsafeUtility.MemClear(m_Data, dataSize);
             m_Allocator = allocator;
@@ -226,8 +232,8 @@ namespace UnityEngine.Rendering.Universal
         static int LevelLength(int level, int branchingOrder) => Pow2N(branchingOrder, level + 1);
 
         // These are for when orders of length <= 64 only take up 1 item, e.g. ulong bitmasks.
-        static int LevelOffset64(int level, int branchingOrder) => math.min(level, 6/branchingOrder) + LevelOffset(math.max(0, level - 6/branchingOrder), branchingOrder);
-        static int LevelLength64(int level, int branchingOrder) => Pow2N(branchingOrder, math.max(0, level - 6/branchingOrder + 1));
+        static int LevelOffset64(int level, int branchingOrder) => math.min(level, 6 / branchingOrder) + LevelOffset(math.max(0, level - 6 / branchingOrder), branchingOrder);
+        static int LevelLength64(int level, int branchingOrder) => Pow2N(branchingOrder, math.max(0, level - 6 / branchingOrder + 1));
 
         static (int, int) AllocateRange<T>(int length, ref int dataSize) where T : struct
         {
@@ -237,6 +243,8 @@ namespace UnityEngine.Rendering.Universal
             return range;
         }
 
+        // 将 offset 向前对其到指定的 alignment
+        // Example: offset = 5, alignment = 4, then return 8
         static int AlignForward(int offset, int alignment)
         {
             var modulo = offset % alignment;
@@ -244,7 +252,8 @@ namespace UnityEngine.Rendering.Universal
             return offset;
         }
 
-        static void* PtrAdd(void* ptr, int bytes) => (void*) ((IntPtr) ptr + bytes);
+        // 对于 ptr，偏移 bytes 个字节
+        static void* PtrAdd(void* ptr, int bytes) => (void*)((IntPtr)ptr + bytes);
 
         static int Pow2(int n) => 1 << n;
 

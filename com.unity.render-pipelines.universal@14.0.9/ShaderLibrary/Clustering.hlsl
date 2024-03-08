@@ -25,7 +25,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
     ClusterIterator state = (ClusterIterator)0;
 
     uint2 tileId = uint2(normalizedScreenSpaceUV * URP_FP_TILE_SCALE);
-    state.tileOffset = tileId.y * URP_FP_TILE_COUNT_X + tileId.x;
+    state.tileOffset = tileId.y * URP_FP_TILE_COUNT_X + tileId.x; // 2d offset in tileMasks
 #if defined(USING_STEREO_MATRICES)
     state.tileOffset += URP_FP_TILE_COUNT * unity_StereoEyeIndex;
 #endif
@@ -46,6 +46,7 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
 #else
     uint header = headerIndex == 0 ? ((URP_FP_PROBES_BEGIN - 1) << 16) : (((URP_FP_WORDS_PER_TILE * 32 - 1) << 16) | URP_FP_PROBES_BEGIN);
 #endif
+// 即 MAX_VISIBLE_LIGHTS > 32
 #if MAX_LIGHTS_PER_TILE > 32
     state.entityIndexNextMax = header;
 #else
@@ -57,6 +58,10 @@ ClusterIterator ClusterInit(float2 normalizedScreenSpaceUV, float3 positionWS, i
             Select4(asuint(urp_Tiles[tileIndex / 4]), tileIndex % 4) &
             Select4(asuint(URP_ZBins[zBinIndex / 4]), zBinIndex % 4) &
             (0xFFFFFFFFu << (header & 0x1F)) & (0xFFFFFFFFu >> (31 - (header >> 16)));
+            // header & 0x1F : 取最低 5 位，因为可见光源数量小于 32
+            // header >> 16  : 取高 16 位, 即 maxIndex
+            // 31 : 最多 32 个光源，索引从 0 开始，最大达到 31
+            // 因此这句代码的含义是: mask out 大于 maxIndex 和 小于 min Index 的部分
     }
 #endif
 

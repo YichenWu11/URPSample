@@ -37,15 +37,20 @@ namespace UnityEngine.Rendering.Universal
         int m_ViewIndex;
         float2 m_CenterOffset;
 
+        // Per Item (light or reflectionProbe)
         public void Execute(int jobIndex)
         {
+            // Item 的 Index
             var index = jobIndex % itemsPerTile;
             m_ViewIndex = jobIndex / itemsPerTile;
             m_CenterOffset = m_ViewIndex == 0 ? centerOffset.xy : centerOffset.zw;
+            // offset for tileRange，每个 Item 有 rangesPerItem 个 Range
+            // 从这个变量偏移到当前 Item 的 Range 的开始位置
             m_Offset = jobIndex * rangesPerItem;
 
             m_TileYRange = new InclusiveRange(short.MaxValue, short.MinValue);
 
+            // 初始化
             for (var i = 0; i < rangesPerItem; i++)
             {
                 tileRanges[m_Offset + i] = new InclusiveRange(short.MaxValue, short.MinValue);
@@ -432,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
                 points[i] = point;
                 if (point.z >= near)
                 {
-                    var clippedPoint = isOrthographic ? point.xy : point.xy/point.z;
+                    var clippedPoint = isOrthographic ? point.xy : point.xy / point.z;
                     var clippedIndex = clippedPointsCount++;
                     clippedPoints[clippedIndex] = clippedPoint;
                     if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
@@ -447,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
                 var p0 = points[indices.x];
                 for (var j = 0; j < 3; j++)
                 {
-                    var p1 = points[indices[j+1]];
+                    var p1 = points[indices[j + 1]];
                     // The entire line is in front of the near plane.
                     if (p0.z < near && p1.z < near) continue;
                     // Check whether the line needs clipping.
@@ -455,7 +460,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         var d = (near - p0.z) / (p1.z - p0.z);
                         var p = math.lerp(p0, p1, d);
-                        var clippedPoint = isOrthographic ? p.xy : p.xy/p.z;
+                        var clippedPoint = isOrthographic ? p.xy : p.xy / p.z;
                         var clippedIndex = clippedPointsCount++;
                         clippedPoints[clippedIndex] = clippedPoint;
                         if (clippedPoint.x < clippedPoints[leftmostIndex].x) leftmostIndex = clippedIndex;
