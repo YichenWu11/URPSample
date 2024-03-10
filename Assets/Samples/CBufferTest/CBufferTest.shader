@@ -37,9 +37,9 @@ Shader "Unlit/CBufferTest"
                 return o;
             }
 
-            CBUFFER_START(MyCBuffer)
+            // CBUFFER_START(MyCBuffer)
                 half4 _Color;
-            CBUFFER_END
+            // CBUFFER_END
 
             half4 frag (v2f i) : SV_Target
             {
