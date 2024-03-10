@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.Universal
                 var freeMasks = FreeMasks(level);
                 var freeMask = freeMasks[maskIndex];
                 Assert.AreNotEqual(freeMask, 0);
-                var bitIndex = math.tzcnt(freeMask);
+                var bitIndex = math.tzcnt(freeMask); // mask out the free bit
                 freeMask ^= 1ul << bitIndex;
                 freeMasks[maskIndex] = freeMask;
                 if (freeMask != 0) freeMaskIndices[maskCounts[level]++] = maskIndex;
