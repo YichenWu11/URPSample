@@ -25,8 +25,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         uint m_Value;
 
-        static uint s_CurrentValidBit = 1 << 16;
-        static uint s_SharedResourceValidBit = 0x7FFF << 16;
+        static uint s_CurrentValidBit = 1 << 16; // 0x10000，因为 m_Value 的高 16 位用作 validity
+        static uint s_SharedResourceValidBit = 0x7FFF << 16; // 0x7FFF0000 
 
         public int index { get { return (int)(m_Value & kIndexMask); } }
         public RenderGraphResourceType type { get; private set; }

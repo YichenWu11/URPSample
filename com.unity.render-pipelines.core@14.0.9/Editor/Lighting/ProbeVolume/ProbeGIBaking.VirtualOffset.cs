@@ -85,7 +85,6 @@ namespace UnityEngine.Rendering
                 if (!rigidBody.isKinematic)
                     s_ExcludedRigidBodies.Add(rigidBody);
             }
-
         }
 
         static void ModifyPhysicsComponentsForBaking()
@@ -225,7 +224,8 @@ namespace UnityEngine.Rendering
                     // Run a quick overlap check for each search box before setting up rays for the position
                     int overlapCount = 0;
                     var batchPosStart = batchPosIdx;
-                    do {
+                    do
+                    {
                         int subdivLevel = m_BakingBatch.GetSubdivLevelAt(positions[batchPosIdx]);
                         var brickSize = ProbeReferenceVolume.CellSize(subdivLevel);
                         var searchDistance = (brickSize * m_BakingProfile.minBrickSize) / ProbeBrickPool.kBrickCellCount;

@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         protected abstract int GetSortIndex(Type res);
 
 
+        // hash of desc
         public void ReleaseResource(int hash, Type resource, int currentFrameIndex)
         {
             if (!m_ResourcePool.TryGetValue(hash, out var list))

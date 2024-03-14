@@ -855,7 +855,6 @@ namespace UnityEngine.Rendering.Universal
 
                 builder.AllowPassCulling(false);
 
-
                 builder.SetRenderFunc((PassData data, RenderGraphContext context) =>
                 {
                     // TODO RENDERGRAPH: implement both branches

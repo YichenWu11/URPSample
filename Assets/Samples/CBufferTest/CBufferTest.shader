@@ -3,50 +3,64 @@ Shader "Unlit/CBufferTest"
     Properties
     {
         _Color("Color", Color) = (0.2, 0.2, 0.2)
+        _TintColor("TintColor", Color) = (0.2, 0.2, 0.2)
+        _Intensity("Intensity", Color) = (1.0, 1.0, 1.0)
+        _AIntensity("AIntensity", Range(0.0, 1.0)) = 1.0
+        _BIntensity("BIntensity", Range(0.0, 1.0)) = 1.0
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
-
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
+            HLSLPROGRAM
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma enable_d3d11_debug_symbols
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            struct appdata
+            struct Attributes
             {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
+                float4 position     : POSITION;
+                float2 texcoord     : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            struct v2f
+            struct Varyings
             {
-                float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                float4 positionCS   : SV_POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
-            v2f vert (appdata v)
+            Varyings Vert(Attributes input)
             {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
-                return o;
+                Varyings output = (Varyings)0;
+
+                output.uv = input.texcoord;
+                output.positionCS = TransformObjectToHClip(input.position.xyz);
+                return output;
             }
 
-            // CBUFFER_START(MyCBuffer)
-                half4 _Color;
-            // CBUFFER_END
+            CBUFFER_START(MyCBuffer)
+                half3 _Color;
+                half3 _Intensity;
+                float _AIntensity;
+                float _BIntensity;
+            CBUFFER_END
 
-            half4 frag (v2f i) : SV_Target
+            CBUFFER_START(MyCBuffer1)
+                half4 _TintColor;
+            CBUFFER_END
+
+            half4 Frag(Varyings input) : SV_Target
             {
                 half4 color = half4(1.0h, 1.0h, 1.0h, 1.0h);
-                return color * _Color;
+                half4 _ColorH4 = half4(_Color, 1.0h);
+                return color * _ColorH4 * _TintColor * _Intensity.x * _AIntensity * _BIntensity;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 }

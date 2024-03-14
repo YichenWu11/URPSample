@@ -262,8 +262,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
-            public List<string>[]   debugResourceReads;
-            public List<string>[]   debugResourceWrites;
+            public List<string>[] debugResourceReads;
+            public List<string>[] debugResourceWrites;
 #endif
 
             public void Reset(RenderGraphPass pass)
@@ -921,6 +921,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 while (m_CullingStack.Count != 0)
                 {
                     var unusedResource = resourceUsageList[m_CullingStack.Pop()];
+                    // 对于这个从来没有被读过的资源
+                    // 找出需要对其进行写操作的 Pass
                     foreach (var producerIndex in unusedResource.producers)
                     {
                         ref var producerInfo = ref m_CompiledPassInfos[producerIndex];

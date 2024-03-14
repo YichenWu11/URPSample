@@ -10,7 +10,7 @@ real3 ComputeEdgeFactor(real3 V1, real3 V2)
     real  V1oV2 = dot(V1, V2);
     real3 V1xV2 = cross(V1, V2);
 #if 0
-    return normalize(V1xV2) * acos(V1oV2));
+    return normalize(V1xV2) * acos(V1oV2);
 #else
     // Approximate: { y = rsqrt(1.0 - V1oV2 * V1oV2) * acos(V1oV2) } on [0, 1].
     // Fit: HornerForm[MiniMaxApproximation[ArcCos[x]/Sqrt[1 - x^2], {x, {0, 1 - $MachineEpsilon}, 6, 0}][[2, 1]]].

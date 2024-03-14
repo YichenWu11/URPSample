@@ -802,7 +802,7 @@ namespace UnityEngine.Rendering.Universal
             int currentIndex = 0;
 
             // find the index of the renderPassEvent in the values array
-            for(int i = 0; i < numEvents; ++i)
+            for (int i = 0; i < numEvents; ++i)
             {
                 if (RenderPassEventsEnumValues.values[currentIndex] == (int)renderPassEvent)
                     break;
@@ -821,7 +821,7 @@ namespace UnityEngine.Rendering.Universal
 
             int nextValue = RenderPassEventsEnumValues.values[currentIndex + 1];
 
-            return nextValue - (int) renderPassEvent;
+            return nextValue - (int)renderPassEvent;
         }
     }
 }

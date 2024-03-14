@@ -175,6 +175,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void BeginExecute(int currentFrameIndex)
         {
             m_CurrentFrameIndex = currentFrameIndex;
+            // 创建或释放 Shared 类型的资源
             ManageSharedRenderGraphResources();
             current = this;
         }
@@ -337,6 +338,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new TextureHandle(newHandle);
         }
 
+        // Transient Resource
+        // 即只会在单个 Pass 的执行周期内存在的资源
         internal TextureHandle CreateTexture(in TextureDesc desc, int transientPassIndex = -1)
         {
             ValidateTextureDesc(desc);
@@ -454,6 +457,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
         }
+
         internal void CreatePooledResource(RenderGraphContext rgContext, ResourceHandle handle)
         {
             CreatePooledResource(rgContext, handle.iType, handle.index);
